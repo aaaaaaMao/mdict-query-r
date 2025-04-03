@@ -34,12 +34,25 @@ class IndexBuilder:
 
             self.index_manager.Header.insert_many(self.mdx.header.items()).execute()
     
-    def lookup_indexes(self, keyword: str):
+    def lookup_indexes(self, keyword='', keywords=[]):
+        assert(keyword != "" or len(keywords) != 0)
+
+        if len(keywords) != 0:
+            return self.index_manager.Index.select().where(
+                self.index_manager.Index.key_text.in_(keywords)
+            ).dicts()
+
         return self.index_manager.Index.select().where(
             self.index_manager.Index.key_text == keyword
         ).dicts()
 
-    def query(self, keyword: str):
-        indexes = self.lookup_indexes(keyword)
+    def query(self, keyword='', keywords: list[str]=[], ignore_case=False):
+        assert(keyword != "" or len(keywords) != 0)
+
+        if ignore_case:
+            keyword = keyword.lower()
+            keywords = [k.lower() for k in keywords]
+
+        indexes = self.lookup_indexes(keyword, keywords)
         return self.mdx.get_data_by_indexes(indexes)
         
