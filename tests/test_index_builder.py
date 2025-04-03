@@ -30,6 +30,11 @@ class TestIndexBuilder(unittest.TestCase):
     
     def test_init(self):
         builder = IndexBuilder(self.mdx_file_path)
+
+        records = builder.query('doe')
+        self.assertEqual(records, [
+            'a deer, a female deer.'
+        ])
     
     def tearDown(self):
         pass

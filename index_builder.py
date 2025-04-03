@@ -7,18 +7,18 @@ class IndexBuilder:
 
     def __init__(self, filepath: str):
         assert(os.path.isfile(filepath))
+        self.mdx = MDX(filepath)
 
         _filename, _file_ext = os.path.splitext(filepath)
 
         index_exists = os.path.isfile(filepath + '.db')
-        index_manager = MdxIndexManger(filepath)
+        self.index_manager = MdxIndexManger(filepath)
 
         if not index_exists:
-            mdx = MDX(filepath)
-            index = mdx.get_index()
+            indexes = self.mdx.get_indexes()
 
-            for i in range(0, len(index), 500):
-                index_manager.Index.insert_many([
+            for i in range(0, len(indexes), 500):
+                self.index_manager.Index.insert_many([
                 (
                     item['key_text'],
                         item['file_pos'],
@@ -29,7 +29,17 @@ class IndexBuilder:
                         item['record_end'],
                         item['offset']
                 )
-                for item in index[i:i + 500]
+                for item in indexes[i:i + 500]
                 ]).execute()
 
-            index_manager.Header.insert_many(mdx.header.items()).execute()
+            self.index_manager.Header.insert_many(self.mdx.header.items()).execute()
+    
+    def lookup_indexes(self, keyword: str):
+        return self.index_manager.Index.select().where(
+            self.index_manager.Index.key_text == keyword
+        ).dicts()
+
+    def query(self, keyword: str):
+        indexes = self.lookup_indexes(keyword)
+        return self.mdx.get_data_by_indexes(indexes)
+        

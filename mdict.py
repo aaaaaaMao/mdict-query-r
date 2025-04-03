@@ -11,7 +11,7 @@ from lib.readmdict import MDX as _MDX
 
 class MDX(_MDX):
 
-    def get_index(self):
+    def get_indexes(self):
         check_block = True
 
         with open(self._fname, 'rb') as f:
@@ -125,3 +125,36 @@ class MDX(_MDX):
                 size_counter += compressed_size
 
             return index_dict_list
+        
+    def get_data_by_indexes(self, indexes):
+        with open(self._fname, 'rb') as f:
+            result = []
+            encoding = self.header[b'Encoding'].decode('utf-8')
+            for index in indexes:
+                f.seek(index['file_pos'])
+                record_block_compressed = f.read(index['compressed_size'])
+                record_block_type = record_block_compressed[:4]
+                record_block_type = index['record_block_type']
+                decompressed_size = index['decompressed_size']
+
+                #adler32 = unpack('>I', record_block_compressed[4:8])[0]
+                if record_block_type == 0:
+                    _record_block = record_block_compressed[8:]
+                    # lzo compression
+                elif record_block_type == 1:
+                    header = b'\xf0' + pack('>I', index['decompressed_size'])
+                    _record_block = lzo.decompress(record_block_compressed[8:], initSize = decompressed_size, blockSize=1308672)
+                        # zlib compression
+                elif record_block_type == 2:
+                    # decompress
+                    _record_block = zlib.decompress(record_block_compressed[8:])
+                data = _record_block[index['record_start'] - index['offset']:index['record_end'] - index['offset']]
+
+                record  = data.decode(encoding, errors='ignore').strip(u'\x00')
+                # if self.header[b'Stylesheet']:
+                #     record = self._replace_stylesheet(record)
+                # record = record.decode('utf-8')
+
+                result.append(record)
+
+            return result
