@@ -1,3 +1,5 @@
+# extend basic MDX
+
 from struct import pack, unpack
 
 # zlib compression is used for engine version >=2.0
@@ -20,8 +22,6 @@ class MDX(_MDX):
             assert(num_entries == self._num_entries)
             record_block_info_size = self._read_number(f)
             record_block_size = self._read_number(f)
-
-            print(num_record_blocks, num_entries, record_block_info_size, record_block_size)
             
             record_block_info_list = []
             size_counter = 0
@@ -124,5 +124,4 @@ class MDX(_MDX):
                 offset += decompressed_size 
                 size_counter += compressed_size
 
-            print(index_dict_list[0])
-            return { "index_dict_list": index_dict_list }
+            return index_dict_list

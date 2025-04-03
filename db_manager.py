@@ -9,7 +9,7 @@ class MdxIndexManger():
         self.db = SqliteDatabase(filepath + '.db')
         
         self.db.connect()
-        tables = [self.Index, self.Header]
+        tables = [self.Header, self.Index]
         self.db.bind(tables)
         self.db.create_tables(tables)
 
@@ -28,7 +28,7 @@ class MdxIndexManger():
 
     class Header(Model):
         class Meta:
-            tabel_name = 'mdx_header'
+            table_name = 'mdx_header'
         
         key = TextField(null=False)
         value = TextField()

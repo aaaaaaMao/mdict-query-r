@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from setup import temp_dir
