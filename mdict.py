@@ -7,7 +7,7 @@ import zlib
 # LZO compression is used for engine version < 2.0
 from lib import lzo
 
-from lib.readmdict import MDX as _MDX
+from lib.readmdict import MDX as _MDX, MDD as _MDD
 
 class MDX(_MDX):
 
@@ -158,3 +158,83 @@ class MDX(_MDX):
                 result.append(record)
 
             return result
+        
+class MDD(_MDD):
+
+    # this is same with MDX.get_index
+    def get_indexes(self):
+        with open(self._fname, 'rb') as f:
+            index_dict_list = []
+            f.seek(self._record_block_offset)
+
+            num_record_blocks = self._read_number(f)
+            num_entries = self._read_number(f)
+            assert(num_entries == self._num_entries)
+            record_block_info_size = self._read_number(f)
+            record_block_size = self._read_number(f)
+
+            # record block info section
+            record_block_info_list = []
+            size_counter = 0
+            for i in range(num_record_blocks):
+                compressed_size = self._read_number(f)
+                decompressed_size = self._read_number(f)
+                record_block_info_list += [(compressed_size, decompressed_size)]
+                size_counter += self._number_width * 2
+            # todo:注意！！！
+            assert(size_counter == record_block_info_size)
+
+            # actual record block
+            offset = 0
+            i = 0
+            size_counter = 0
+            for compressed_size, decompressed_size in record_block_info_list:
+                current_pos = f.tell()
+                record_block_compressed = f.read(compressed_size)
+                # 4 bytes: compression type
+                record_block_type = record_block_compressed[:4]
+                # 4 bytes: adler32 checksum of decompressed record block
+                adler32 = unpack('>I', record_block_compressed[4:8])[0]
+                if record_block_type == b'\x00\x00\x00\x00':
+                    _type = 0
+                elif record_block_type == b'\x01\x00\x00\x00':
+                    _type = 1
+                    if lzo is None:
+                        print("LZO compression is not supported")
+                        break
+                    # decompress
+                    header = b'\xf0' + pack('>I', decompressed_size)
+                elif record_block_type == b'\x02\x00\x00\x00':
+                    # decompress
+                    _type = 2
+
+                # split record block according to the offset info from key block
+                while i < len(self._key_list):
+                    ### 用来保存索引信息的空字典
+                    index_dict = {}
+                    index_dict['file_pos'] = current_pos
+                    index_dict['compressed_size'] = compressed_size
+                    index_dict['decompressed_size'] = decompressed_size
+                    index_dict['record_block_type'] = _type
+                    record_start, key_text = self._key_list[i]
+                    index_dict['record_start'] = record_start
+                    index_dict['key_text'] = key_text.decode("utf-8")
+                    index_dict['offset'] = offset
+                    # reach the end of current record block
+                    if record_start - offset >= decompressed_size: 
+                        break
+                    # record end index
+                    if i < len(self._key_list) - 1:
+                        record_end = self._key_list[i + 1][0]
+                    else:
+                        record_end = decompressed_size + offset
+                    index_dict['record_end'] = record_end
+                    i += 1
+
+                    index_dict_list.append(index_dict)
+                    #yield key_text, data
+                offset += decompressed_size 
+                size_counter += compressed_size
+            assert(size_counter == record_block_size)
+
+            return index_dict_list

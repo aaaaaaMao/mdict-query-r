@@ -6,7 +6,14 @@ class MdxIndexManger():
 
     def __init__(self, filepath: str):
         assert(os.path.isfile(filepath))
-        self.db = SqliteDatabase(filepath + '.db')
+
+        _, ext = os.path.splitext(filepath)
+        
+        db_filepath = filepath
+        if ext != '.db':
+            db_filepath += '.db'
+
+        self.db = SqliteDatabase(db_filepath)
         
         self.db.connect()
         tables = [self.Header, self.Index]

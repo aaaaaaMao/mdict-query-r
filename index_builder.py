@@ -1,21 +1,27 @@
 import os
 
-from mdict import MDX
+from mdict import MDX, MDD
 from db_manager import MdxIndexManger
 
 class IndexBuilder:
 
     def __init__(self, filepath: str):
         assert(os.path.isfile(filepath))
-        self.mdx = MDX(filepath)
+        _, _file_ext = os.path.splitext(filepath)
+        assert(_file_ext in ['.mdx', '.mdd'])
 
-        _filename, _file_ext = os.path.splitext(filepath)
+        if _file_ext == '.mdx':
+            self.mdict_type = 'MDX'
+            self.mdict = MDX(filepath)
+        else:
+            self.mdict_type = 'MDD'
+            self.mdict = MDD(filepath)
 
         index_exists = os.path.isfile(filepath + '.db')
         self.index_manager = MdxIndexManger(filepath)
 
         if not index_exists:
-            indexes = self.mdx.get_indexes()
+            indexes = self.mdict.get_indexes()
 
             for i in range(0, len(indexes), 500):
                 self.index_manager.Index.insert_many([
@@ -32,7 +38,7 @@ class IndexBuilder:
                 for item in indexes[i:i + 500]
                 ]).execute()
 
-            self.index_manager.Header.insert_many(self.mdx.header.items()).execute()
+            self.index_manager.Header.insert_many(self.mdict.header.items()).execute()
     
     def lookup_indexes(self, keyword='', keywords=[]):
         assert(keyword != "" or len(keywords) != 0)
@@ -54,5 +60,5 @@ class IndexBuilder:
             keywords = [k.lower() for k in keywords]
 
         indexes = self.lookup_indexes(keyword, keywords)
-        return self.mdx.get_data_by_indexes(indexes)
+        return self.mdict.get_data_by_indexes(indexes)
         
