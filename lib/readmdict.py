@@ -3,7 +3,7 @@
 # readmdict.py
 # Octopus MDict Dictionary File (.mdx) and Resource File (.mdd) Analyser
 #
-# Copyright (C) 2012, 2013, 2015, 2022 Xiaoqiang Wang <xiaoqiangwang AT gmail DOT com>
+# Copyright (C) 2012, 2013, 2015, 2022, 2023 Xiaoqiang Wang <xiaoqiangwang AT gmail DOT com>
 #
 # This program is a free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -84,7 +84,6 @@ class MDict(object):
     Base class which reads in header and key block.
     It has no public methods and serves only as code sharing base class.
     """
-
     def __init__(self, fname, encoding='', passcode=None):
         self._fname = fname
         self._encoding = encoding.upper()
@@ -103,11 +102,9 @@ class MDict(object):
             uuid = self.header.get(b'UUID')
             if uuid:
                 if xxhash is None:
-                    raise RuntimeError(
-                        'xxhash module is needed to read MDict 3.0 format')
+                    raise RuntimeError('xxhash module is needed to read MDict 3.0 format')
                 mid = (len(uuid) + 1) // 2
-                self._encrypted_key = xxhash.xxh64_digest(
-                    uuid[:mid]) + xxhash.xxh64_digest(uuid[mid:])
+                self._encrypted_key = xxhash.xxh64_digest(uuid[:mid]) + xxhash.xxh64_digest(uuid[mid:])
 
         self._key_list = self._read_keys()
 
@@ -142,7 +139,7 @@ class MDict(object):
     def _decode_block(self, block, decompressed_size):
         # block info: compression, encryption
         info = unpack('<L', block[:4])[0]
-        compression_method = info & 0xf
+        compression_method =  info & 0xf
         encryption_method = (info >> 4) & 0xf
         encryption_size = (info >> 8) & 0xff
 
@@ -159,19 +156,15 @@ class MDict(object):
         if encryption_method == 0:
             decrypted_block = data
         elif encryption_method == 1:
-            decrypted_block = _fast_decrypt(
-                data[:encryption_size], encrypted_key) + data[encryption_size:]
+            decrypted_block = _fast_decrypt(data[:encryption_size], encrypted_key) + data[encryption_size:]
         elif encryption_method == 2:
-            decrypted_block = _salsa_decrypt(
-                data[:encryption_size], encrypted_key) + data[encryption_size:]
+            decrypted_block = _salsa_decrypt(data[:encryption_size], encrypted_key) + data[encryption_size:]
         else:
-            raise Exception('encryption method %d not supported' %
-                            encryption_method)
+            raise Exception('encryption method %d not supported' % encryption_method)
 
         # check adler checksum over decrypted data
         if self._version >= 3:
-            assert (hex(adler32) == hex(
-                zlib.adler32(decrypted_block) & 0xffffffff))
+            assert(hex(adler32) == hex(zlib.adler32(decrypted_block) & 0xffffffff))
 
         # decompress
         if compression_method == 0:
@@ -179,36 +172,32 @@ class MDict(object):
         elif compression_method == 1:
             if lzo is None:
                 raise RuntimeError("LZO compression is not supported")
-            # header = b'\xf0' + pack('>I', decompressed_size)
-            decompressed_block = lzo.decompress(decrypted_block)
+            header = b'\xf0' + pack('>I', decompressed_size)
+            decompressed_block = lzo.decompress(header + decrypted_block)
         elif compression_method == 2:
             decompressed_block = zlib.decompress(decrypted_block)
         else:
-            raise Exception('compression method %d not supported' %
-                            compression_method)
+            raise Exception('compression method %d not supported' % compression_method)
 
         # check adler checksum over decompressed data
         if self._version < 3:
-            assert (hex(adler32) == hex(
-                zlib.adler32(decompressed_block) & 0xffffffff))
+            assert(hex(adler32) == hex(zlib.adler32(decompressed_block) & 0xffffffff))
 
         return decompressed_block
-
+    
     def _decode_key_block_info(self, key_block_info_compressed):
         if self._version >= 2:
             # zlib compression
-            assert (key_block_info_compressed[:4] == b'\x02\x00\x00\x00')
+            assert(key_block_info_compressed[:4] == b'\x02\x00\x00\x00')
             # decrypt if needed
             if self._encrypt & 0x02:
-                key = ripemd128(
-                    key_block_info_compressed[4:8] + pack(b'<L', 0x3695))
-                key_block_info_compressed = key_block_info_compressed[:8] + _fast_decrypt(
-                    key_block_info_compressed[8:], key)
+                key = ripemd128(key_block_info_compressed[4:8] + pack(b'<L', 0x3695))
+                key_block_info_compressed = key_block_info_compressed[:8] + _fast_decrypt(key_block_info_compressed[8:], key)
             # decompress
             key_block_info = zlib.decompress(key_block_info_compressed[8:])
             # adler checksum
             adler32 = unpack('>I', key_block_info_compressed[4:8])[0]
-            assert (adler32 == zlib.adler32(key_block_info) & 0xffffffff)
+            assert(adler32 == zlib.adler32(key_block_info) & 0xffffffff)
         else:
             # no compression
             key_block_info = key_block_info_compressed
@@ -227,12 +216,10 @@ class MDict(object):
 
         while i < len(key_block_info):
             # number of entries in current key block
-            num_entries += unpack(self._number_format,
-                                  key_block_info[i:i+self._number_width])[0]
+            num_entries += unpack(self._number_format, key_block_info[i:i+self._number_width])[0]
             i += self._number_width
             # text head size
-            text_head_size = unpack(
-                byte_format, key_block_info[i:i+byte_width])[0]
+            text_head_size = unpack(byte_format, key_block_info[i:i+byte_width])[0]
             i += byte_width
             # text head
             if self._encoding != 'UTF-16':
@@ -240,8 +227,7 @@ class MDict(object):
             else:
                 i += (text_head_size + text_term) * 2
             # text tail size
-            text_tail_size = unpack(
-                byte_format, key_block_info[i:i+byte_width])[0]
+            text_tail_size = unpack(byte_format, key_block_info[i:i+byte_width])[0]
             i += byte_width
             # text tail
             if self._encoding != 'UTF-16':
@@ -249,15 +235,12 @@ class MDict(object):
             else:
                 i += (text_tail_size + text_term) * 2
             # key block compressed size
-            key_block_compressed_size = unpack(
-                self._number_format, key_block_info[i:i+self._number_width])[0]
+            key_block_compressed_size = unpack(self._number_format, key_block_info[i:i+self._number_width])[0]
             i += self._number_width
             # key block decompressed size
-            key_block_decompressed_size = unpack(
-                self._number_format, key_block_info[i:i+self._number_width])[0]
+            key_block_decompressed_size = unpack(self._number_format, key_block_info[i:i+self._number_width])[0]
             i += self._number_width
-            key_block_info_list += [(key_block_compressed_size,
-                                     key_block_decompressed_size)]
+            key_block_info_list += [(key_block_compressed_size, key_block_decompressed_size)]
 
         #assert(num_entries == self._num_entries)
 
@@ -267,8 +250,7 @@ class MDict(object):
         key_list = []
         i = 0
         for compressed_size, decompressed_size in key_block_info_list:
-            key_block = self._decode_block(
-                key_block_compressed[i:i+compressed_size], decompressed_size)
+            key_block = self._decode_block(key_block_compressed[i:i+compressed_size], decompressed_size)
             # extract one single key block into a key list
             key_list += self._split_key_block(key_block)
             i += compressed_size
@@ -279,8 +261,7 @@ class MDict(object):
         key_start_index = 0
         while key_start_index < len(key_block):
             # the corresponding record's offset in record block
-            key_id = unpack(
-                self._number_format, key_block[key_start_index:key_start_index+self._number_width])[0]
+            key_id = unpack(self._number_format, key_block[key_start_index:key_start_index+self._number_width])[0]
             # key text ends with '\x00'
             if self._encoding == 'UTF-16':
                 delimiter = b'\x00\x00'
@@ -307,7 +288,7 @@ class MDict(object):
         header_bytes = f.read(header_bytes_size)
         # 4 bytes: adler32 checksum of header, in little endian
         adler32 = unpack('<I', f.read(4))[0]
-        assert (adler32 == zlib.adler32(header_bytes) & 0xffffffff)
+        assert(adler32 == zlib.adler32(header_bytes) & 0xffffffff)
         # mark down key block offset
         self._key_block_offset = f.tell()
         f.close()
@@ -416,8 +397,7 @@ class MDict(object):
             decompressed_size = self._read_int32(f)
             compressed_size = self._read_int32(f)
             block_data = f.read(compressed_size)
-            decompressed_block_data = self._decode_block(
-                block_data, decompressed_size)
+            decompressed_block_data = self._decode_block(block_data, decompressed_size)
             key_list.extend(self._split_key_block(decompressed_block_data))
 
         f.close()
@@ -460,13 +440,12 @@ class MDict(object):
         # read key block info, which indicates key block's compressed and decompressed size
         key_block_info = f.read(key_block_info_size)
         key_block_info_list = self._decode_key_block_info(key_block_info)
-        assert (num_key_blocks == len(key_block_info_list))
+        assert(num_key_blocks == len(key_block_info_list))
 
         # read key block
         key_block_compressed = f.read(key_block_size)
         # extract key block
-        key_list = self._decode_key_block(
-            key_block_compressed, key_block_info_list)
+        key_list = self._decode_key_block(key_block_compressed, key_block_info_list)
 
         self._record_block_offset = f.tell()
         f.close()
@@ -510,8 +489,7 @@ class MDict(object):
         # read key block
         key_block_compressed = f.read(key_block_size)
         # extract key block
-        key_list = self._decode_key_block(
-            key_block_compressed, key_block_info_list)
+        key_list = self._decode_key_block(key_block_compressed, key_block_info_list)
 
         self._record_block_offset = f.tell()
         f.close()
@@ -531,6 +509,10 @@ class MDict(object):
             yield from self._read_records_v1v2()
 
     def _read_records_v3(self):
+
+        # record index has redudant information about block compressed/decompresed size
+        record_index = self._read_record_index()
+
         f = open(self._fname, 'rb')
         f.seek(self._record_block_offset)
 
@@ -543,8 +525,17 @@ class MDict(object):
         for j in range(num_record_blocks):
             decompressed_size = self._read_int32(f)
             compressed_size = self._read_int32(f)
-            record_block = self._decode_block(
-                f.read(compressed_size), decompressed_size)
+
+            # check against the record index information
+            if (compressed_size + 8, decompressed_size) != record_index[j]:
+                compressed_size = record_index[j][0] - 8
+                decompressed_size = record_index[j][1]
+                # skip to the next block
+                print('Skip (potentially) damaged record block')
+                f.read(compressed_size)
+                continue
+
+            record_block = self._decode_block(f.read(compressed_size), decompressed_size)
 
             # split record block according to the offset info from key block
             while i < len(self._key_list):
@@ -569,7 +560,7 @@ class MDict(object):
 
         num_record_blocks = self._read_number(f)
         num_entries = self._read_number(f)
-        assert (num_entries == self._num_entries)
+        assert(num_entries == self._num_entries)
         record_block_info_size = self._read_number(f)
         record_block_size = self._read_number(f)
 
@@ -581,15 +572,14 @@ class MDict(object):
             decompressed_size = self._read_number(f)
             record_block_info_list += [(compressed_size, decompressed_size)]
             size_counter += self._number_width * 2
-        assert (size_counter == record_block_info_size)
+        assert(size_counter == record_block_info_size)
 
         # actual record block
         offset = 0
         i = 0
         size_counter = 0
         for compressed_size, decompressed_size in record_block_info_list:
-            record_block = self._decode_block(
-                f.read(compressed_size), decompressed_size)
+            record_block = self._decode_block(f.read(compressed_size), decompressed_size)
 
             # split record block according to the offset info from key block
             while i < len(self._key_list):
@@ -607,9 +597,32 @@ class MDict(object):
                 yield key_text, self._treat_record_data(data)
             offset += len(record_block)
             size_counter += compressed_size
-        assert (size_counter == record_block_size)
+        assert(size_counter == record_block_size)
 
         f.close()
+
+    def _read_record_index(self):
+        f = open(self._fname, 'rb')
+
+        f.seek(self._record_index_offset)
+        num_record_blocks = self._read_int32(f)
+        num_bytes = self._read_number(f)
+
+        record_index = []
+        for i in range(num_record_blocks):
+            decompressed_size = self._read_int32(f)
+            compressed_size = self._read_int32(f)
+            record_block = self._decode_block(f.read(compressed_size), decompressed_size)
+            if len(record_block) % 16 != 0:
+                raise Exception('record index block has invalid size %d' % len(record_block))
+
+            j = 0
+            while j < len(record_block):
+                block_size, decompressed_size = unpack('>QQ', record_block[j:j+16])
+                record_index.append((block_size, decompressed_size))
+                j += 16
+        f.close()
+        return record_index
 
     def _treat_record_data(self, data):
         return data
@@ -624,7 +637,6 @@ class MDD(MDict):
     >>> for filename,content in mdd.items():
     ... print filename, content[:10]
     """
-
     def __init__(self, fname, passcode=None):
         MDict.__init__(self, fname, encoding='UTF-16', passcode=passcode)
 
@@ -638,7 +650,6 @@ class MDX(MDict):
     >>> for key,value in mdx.items():
     ... print key, value[:10]
     """
-
     def __init__(self, fname, encoding='', substyle=False, passcode=None):
         MDict.__init__(self, fname, encoding, passcode)
         self._substyle = substyle
@@ -651,16 +662,14 @@ class MDX(MDict):
         for j, p in enumerate(txt_list[1:]):
             style = self._stylesheet[txt_tag[j][1:-1]]
             if p and p[-1] == '\n':
-                txt_styled = txt_styled + \
-                    style[0] + p.rstrip() + style[1] + '\r\n'
+                txt_styled = txt_styled + style[0] + p.rstrip() + style[1] + '\r\n'
             else:
                 txt_styled = txt_styled + style[0] + p + style[1]
         return txt_styled
 
     def _treat_record_data(self, data):
         # convert to utf-8
-        data = data.decode(self._encoding, errors='ignore').strip(
-            u'\x00').encode('utf-8')
+        data = data.decode(self._encoding, errors='ignore').strip(u'\x00').encode('utf-8')
         # substitute styles
         if self._substyle and self._stylesheet:
             data = self._substitute_stylesheet(data)
