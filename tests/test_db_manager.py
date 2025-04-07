@@ -3,7 +3,7 @@ import os
 from time import time
 
 from setup import temp_dir
-from db_manager import MdxIndexManger
+from db_manager import IndexManger
 
 class TestMdxIndexManger(unittest.TestCase):
 
@@ -14,10 +14,10 @@ class TestMdxIndexManger(unittest.TestCase):
             pass
     
     def test_init(self):
-        manager = MdxIndexManger(self.mdx_file_path)
+        manager = IndexManger(self.mdx_file_path)
         manager.db.close()
 
-        manager2 = MdxIndexManger(self.mdx_file_path)
+        manager2 = IndexManger(self.mdx_file_path)
         self.assertTrue(os.path.isfile(self.db_file_path))
         manager2.db.close()
     

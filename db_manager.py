@@ -2,7 +2,7 @@ import os
 
 from peewee import *
 
-class MdxIndexManger():
+class IndexManger():
 
     def __init__(self, filepath: str):
         assert(os.path.isfile(filepath))
@@ -22,7 +22,7 @@ class MdxIndexManger():
 
     class Index(Model):
         class Meta:
-            table_name = 'mdx_index'
+            table_name = 'mdict_indexes'
         
         key_text = TextField(null=False)
         file_pos = IntegerField()
@@ -35,7 +35,7 @@ class MdxIndexManger():
 
     class Header(Model):
         class Meta:
-            table_name = 'mdx_header'
+            table_name = 'mdict_headers'
         
         key = TextField(null=False)
         value = TextField()

@@ -1,7 +1,7 @@
 import os
 
 from mdict import MDX, MDD
-from db_manager import MdxIndexManger
+from db_manager import IndexManger
 
 class IndexBuilder:
 
@@ -18,7 +18,7 @@ class IndexBuilder:
             self.mdict = MDD(filepath)
 
         index_exists = os.path.isfile(filepath + '.db')
-        self.index_manager = MdxIndexManger(filepath)
+        self.index_manager = IndexManger(filepath)
 
         if not index_exists:
             indexes = self.mdict.get_indexes()
