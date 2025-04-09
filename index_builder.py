@@ -1,4 +1,5 @@
 import os
+from dataclasses import asdict
 
 from mdict import MDX, MDD
 from db_manager import IndexManger
@@ -21,24 +22,18 @@ class IndexBuilder:
         self.index_manager = IndexManger(filepath)
 
         if not index_exists:
-            indexes = self.mdict.get_indexes()
+            self._build()
 
-            for i in range(0, len(indexes), 500):
-                self.index_manager.Index.insert_many([
-                (
-                    item['key_text'],
-                        item['file_pos'],
-                        item['compressed_size'],
-                        item['decompressed_size'],
-                        item['record_block_type'],
-                        item['record_start'],
-                        item['record_end'],
-                        item['offset']
-                )
-                for item in indexes[i:i + 500]
-                ]).execute()
+    def _build(self):
+        indexes = self.mdict.get_indexes()
 
-            self.index_manager.Header.insert_many(self.mdict.header.items()).execute()
+        batch = 2000
+        for i in range(0, len(indexes), batch):
+            self.index_manager.Index.insert_many([
+              asdict(x) for x in indexes[i:i + batch]
+            ]).execute()
+
+        self.index_manager.Header.insert_many(self.mdict.header.items()).execute()
     
     def lookup_indexes(self, keyword='', keywords=[]):
         assert(keyword != "" or len(keywords) != 0)

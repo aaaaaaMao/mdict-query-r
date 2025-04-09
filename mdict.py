@@ -1,6 +1,7 @@
 # extend basic MDX
 
 from struct import pack, unpack
+from dataclasses import dataclass
 
 # zlib compression is used for engine version >=2.0
 import zlib
@@ -8,6 +9,24 @@ import zlib
 from lib import lzo
 
 from lib.readmdict import MDX as _MDX, MDD as _MDD, MDict
+
+@dataclass
+class MdictIndex:
+    # 关键词
+    key_text: str
+    # record_block 开始的位置
+    file_pos: int
+    # record_block 压缩前的大小
+    compressed_size: int
+    # 解压后的大小
+    decompressed_size: int
+    # record_block 的压缩类型
+    record_block_type: int
+    # record_start，record_end，offset 
+    # 用于从 record_block 中提取某一调记录
+    record_start: int
+    record_end: int
+    offset: int
 
 def _get_indexes(mdict: MDict):
     check_block = False
@@ -33,20 +52,11 @@ def _get_indexes(mdict: MDict):
             size_counter += mdict._number_width * 2
         assert(size_counter == record_block_info_size)
 
-        index_dict_list = []
+        result: list[MdictIndex] = []
         # actual record block data
         offset = 0
         i = 0
         size_counter = 0
-        ###最后的索引表的格式为
-        ###  key_text(关键词，可以由后面的 keylist 得到)
-        ###  file_pos(record_block开始的位置)
-        ###  compressed_size(record_block压缩前的大小)
-        ###  decompressed_size(解压后的大小)
-        ###  record_block_type(record_block 的压缩类型)
-        ###  record_start (以下三个为从 record_block 中提取某一调记录需要的参数，可以直接保存）
-        ###  record_end
-        ###  offset
         for compressed_size, decompressed_size in record_block_info_list:
             current_pos = f.tell()
             record_block_compressed = f.read(compressed_size)
@@ -88,15 +98,18 @@ def _get_indexes(mdict: MDict):
             # split record block according to the offset info from key block
             while i < len(mdict._key_list):
                 ### 用来保存索引信息的空字典
-                index_dict = {}
-                index_dict['file_pos'] = current_pos
-                index_dict['compressed_size'] = compressed_size
-                index_dict['decompressed_size'] = decompressed_size
-                index_dict['record_block_type'] = _type
                 record_start, key_text = mdict._key_list[i]
-                index_dict['record_start'] = record_start
-                index_dict['key_text'] = key_text.decode('utf-8')
-                index_dict['offset'] = offset
+                index = MdictIndex(
+                    key_text = key_text.decode('utf-8'),
+                    file_pos = current_pos,
+                    compressed_size = compressed_size,
+                    decompressed_size = decompressed_size,
+                    record_block_type = _type,
+                    record_start = record_start,
+                    record_end = 0,
+                    offset = offset,
+                )
+
                 # reach the end of current record block
                 if record_start - offset >= decompressed_size: 
                     break
@@ -105,15 +118,15 @@ def _get_indexes(mdict: MDict):
                     record_end = mdict._key_list[i + 1][0]
                 else:
                     record_end = decompressed_size + offset
-                index_dict['record_end'] = record_end
+                index.record_end = record_end
                 i += 1
 
-                index_dict_list.append(index_dict)
+                result.append(index)
 
             offset += decompressed_size 
             size_counter += compressed_size
 
-        return index_dict_list
+        return result
 
 def _get_data_by_indexes(mdict: MDict, indexes):
     with open(mdict._fname, 'rb') as f:

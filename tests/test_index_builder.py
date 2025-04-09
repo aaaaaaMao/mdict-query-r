@@ -100,6 +100,17 @@ class TestIndexBuilder(unittest.TestCase):
         ])
 
         builder.index_manager.db.close()
+
+    @unittest.skip('local test')
+    def test_build_large_mdict(self):
+        mdx_file_path = f'{temp_dir}/プログレッシブ和英中辞典_v4.mdx'
+        db_file_path = mdx_file_path + '.db'
+        if os.path.exists(db_file_path):
+            os.remove(db_file_path)
+
+        builder = IndexBuilder(mdx_file_path)
+        records = builder.query('心', ignore_case=True)
+        self.assertGreater(len(records), 1)
     
     def tearDown(self):
         os.remove(self.mdx_file_path)
