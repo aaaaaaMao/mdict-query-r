@@ -9,16 +9,12 @@ class IndexManger():
 
         _, ext = os.path.splitext(filepath)
         
-        db_filepath = filepath
+        self.db_filepath = filepath
         if ext != '.db':
-            db_filepath += '.db'
+            self.db_filepath += '.db'
 
-        self.db = SqliteDatabase(db_filepath)
-        
-        self.db.connect()
-        tables = [self.Header, self.Index]
-        self.db.bind(tables)
-        self.db.create_tables(tables)
+        self.db = None
+        self._build()
 
     class Index(Model):
         class Meta:
@@ -39,3 +35,20 @@ class IndexManger():
         
         key = TextField(null=False)
         value = TextField()
+
+    def _build(self):
+        assert(self.db == None or self.db.is_closed())
+        
+        self.db = SqliteDatabase(self.db_filepath)
+        
+        self.db.connect()
+        tables = [self.Header, self.Index]
+        self.db.bind(tables)
+        self.db.create_tables(tables)
+
+    def rebuild(self):
+        self.db.close()
+        if os.path.exists(self.db_filepath):
+            os.remove(self.db_filepath)
+        
+        self._build()

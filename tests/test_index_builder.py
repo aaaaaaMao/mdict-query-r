@@ -73,6 +73,12 @@ class TestIndexBuilder(unittest.TestCase):
         self.assertEqual(records, [
             'a deer, a female deer.'
         ])
+
+    def test_rebuild(self):
+        builder = IndexBuilder(self.mdx_file_path)
+        builder.rebuild()
+
+        builder.index_manager.db.close()
     
     def test_build_mdd_index(self):
         mdd_file_path = f'{temp_dir}/basic.mdd'

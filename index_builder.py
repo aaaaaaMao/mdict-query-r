@@ -34,6 +34,10 @@ class IndexBuilder:
             ]).execute()
 
         self.index_manager.Header.insert_many(self.mdict.header.items()).execute()
+
+    def rebuild(self):
+        self.index_manager.rebuild()
+        self._build()
     
     def lookup_indexes(self, keyword='', keywords=[]):
         assert(keyword != "" or len(keywords) != 0)
