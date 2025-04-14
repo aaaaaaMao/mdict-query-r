@@ -34,6 +34,16 @@ class IndexBuilder:
             ]).execute()
 
         self.index_manager.Header.insert_many(self.mdict.header.items()).execute()
+        self.headers = self._get_hearders()
+
+    def _get_hearders(self):
+        headers = {}
+        for key, value in self.mdict.header.items():
+            str_key = key.decode('utf-8') if isinstance(key, bytes) else key
+            str_value = value.decode('utf-8') if isinstance(value, bytes) else value
+            headers[str_key] = str_value
+
+        return headers
 
     def rebuild(self):
         self.index_manager.rebuild()

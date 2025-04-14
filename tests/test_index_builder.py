@@ -25,6 +25,8 @@ class TestIndexBuilder(unittest.TestCase):
             'a deer, a female deer.'
         ])
 
+        self.assertEqual(builder.headers['Title'], 'Example Dictionary')
+
     def test_rebuild(self):
         builder = IndexBuilder(self.mdx_file_path)
         builder.rebuild()
