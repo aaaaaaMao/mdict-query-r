@@ -3,3 +3,7 @@ temp
 __pycache__
 .idea
 .vscode
+
+build.ps1
+dist
+*.egg-info

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mdict_query_r"
+version = "0.1.10"
+authors = [{ name = "aaaaaaMao", email = "bmiemaojie@163.com" }]
+dependencies = ["peewee", "xxhash"]
+description = "A package to query mdict"
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/aaaaaaMao/mdict-query-r"
+Issues = "https://github.com/aaaaaaMao/mdict-query-r/issues"
