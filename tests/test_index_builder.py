@@ -4,7 +4,7 @@ import unittest
 
 from setup import temp_dir
 from mocks import create_mdx, create_mdd
-from index_builder import IndexBuilder
+from mdict_query_r.index_builder import IndexBuilder
 
 class TestIndexBuilder(unittest.TestCase):
 

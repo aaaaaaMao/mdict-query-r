@@ -1,6 +1,6 @@
 import os
 
-from lib.writemdict import MDictWriter
+from mdict_query_r.lib.writemdict import MDictWriter
 
 def create_mdx(filepath: str, data: dict={}, remove_db=False):
     db_file_path = filepath + '.db'

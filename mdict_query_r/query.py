@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 from typing import Any
 
-from index_builder import IndexBuilder
+from .index_builder import IndexBuilder
 
 @dataclass
 class Dictionary:

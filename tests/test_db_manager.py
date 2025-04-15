@@ -3,7 +3,7 @@ import os
 from time import time
 
 from setup import temp_dir
-from db_manager import IndexManger
+from mdict_query_r.db_manager import IndexManger
 
 class TestMdxIndexManger(unittest.TestCase):
 

@@ -1,8 +1,8 @@
 import unittest
 
 from setup import temp_dir
-from lib.writemdict import MDictWriter
-from lib.readmdict import MDX, MDD
+from mdict_query_r.lib.writemdict import MDictWriter
+from mdict_query_r.lib.readmdict import MDX, MDD
 
 class TestLib(unittest.TestCase):
 

@@ -2,7 +2,7 @@ import unittest
 
 from setup import temp_dir
 from mocks import create_mdx
-from query import Querier, Dictionary
+from mdict_query_r.query import Querier, Dictionary
 
 class TestQuery(unittest.TestCase):
     def setUp(self):

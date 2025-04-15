@@ -6,9 +6,9 @@ from dataclasses import dataclass
 # zlib compression is used for engine version >=2.0
 import zlib
 # LZO compression is used for engine version < 2.0
-from lib import lzo
+from .lib import lzo
 
-from lib.readmdict import MDX as _MDX, MDD as _MDD, MDict
+from .lib.readmdict import MDX as _MDX, MDD as _MDD, MDict
 
 @dataclass
 class MdictIndex:

@@ -1,8 +1,8 @@
 import os
 from dataclasses import asdict
 
-from mdict import MDX, MDD
-from db_manager import IndexManger
+from .mdict import MDX, MDD
+from .db_manager import IndexManger
 
 class IndexBuilder:
 
