@@ -172,8 +172,10 @@ class MDict(object):
         elif compression_method == 1:
             if lzo is None:
                 raise RuntimeError("LZO compression is not supported")
-            header = b'\xf0' + pack('>I', decompressed_size)
-            decompressed_block = lzo.decompress(header + decrypted_block)
+            # @todo fix this: some mdx don't need the header
+            # header = b'\xf0' + pack('>I', decompressed_size)
+            # decompressed_block = lzo.decompress(header + decrypted_block)
+            decompressed_block = lzo.decompress(decrypted_block)
         elif compression_method == 2:
             decompressed_block = zlib.decompress(decrypted_block)
         else:
