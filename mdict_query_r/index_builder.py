@@ -27,13 +27,11 @@ class IndexBuilder:
     def _build(self):
         indexes = self.mdict.get_indexes()
 
-        batch = 2000
-        for i in range(0, len(indexes), batch):
-            self.index_manager.Index.insert_many([
-              asdict(x) for x in indexes[i:i + batch]
-            ]).execute()
-
-        self.index_manager.Header.insert_many(self.mdict.header.items()).execute()
+        self.index_manager.insert_indexes([
+            asdict(x) for x in indexes
+        ])
+        
+        self.index_manager.insert_headers(self.mdict.header.items())
         self.headers = self._get_hearders()
 
     def _get_hearders(self):
@@ -48,18 +46,6 @@ class IndexBuilder:
     def rebuild(self):
         self.index_manager.rebuild()
         self._build()
-    
-    def lookup_indexes(self, keyword='', keywords=[]):
-        assert(keyword != "" or len(keywords) != 0)
-
-        if len(keywords) != 0:
-            return self.index_manager.Index.select().where(
-                self.index_manager.Index.key_text.in_(keywords)
-            ).dicts()
-
-        return self.index_manager.Index.select().where(
-            self.index_manager.Index.key_text == keyword
-        ).dicts()
 
     def query(self, keyword='', keywords: list[str]=[], ignore_case=False):
         assert(keyword != "" or len(keywords) != 0)
@@ -68,6 +54,6 @@ class IndexBuilder:
             keyword = keyword.lower()
             keywords = [k.lower() for k in keywords]
 
-        indexes = self.lookup_indexes(keyword, keywords)
+        indexes = self.index_manager.lookup_indexes(keyword, keywords)
         return self.mdict.get_data_by_indexes(indexes)
         

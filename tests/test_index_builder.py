@@ -27,6 +27,8 @@ class TestIndexBuilder(unittest.TestCase):
 
         self.assertEqual(builder.headers['Title'], 'Example Dictionary')
 
+        builder.index_manager.db.close()
+
     def test_rebuild(self):
         builder = IndexBuilder(self.mdx_file_path)
         builder.rebuild()
@@ -38,6 +40,7 @@ class TestIndexBuilder(unittest.TestCase):
         create_mdd(mdd_file_path, remove_db=True)
 
         builder = IndexBuilder(mdd_file_path)
+        builder.index_manager.db.close()
 
     def test_query_keywords(self):
         builder = IndexBuilder(self.mdx_file_path)
