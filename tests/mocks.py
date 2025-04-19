@@ -12,6 +12,8 @@ def create_mdx(filepath: str, data: dict={}, remove_db=False):
         "ray": "a drop of golden sun.",
         "me": "a name I call myself.",
         "far": "a long, long way to run.",
+        "こうない【口内】": "嘴裡。",
+        "口内": "@@@LINK=こうない【口内】\r\n"
     }
     dictionary.update(data)
 

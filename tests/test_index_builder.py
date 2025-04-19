@@ -13,6 +13,8 @@ class TestIndexBuilder(unittest.TestCase):
         self.db_file_path = self.mdx_file_path + '.db'
 
         create_mdx(self.mdx_file_path)
+        
+        self.builder = None
     
     def test_init(self):
         mdx_file_path = f'{temp_dir}/basic.mdx'
@@ -63,6 +65,13 @@ class TestIndexBuilder(unittest.TestCase):
 
         builder.index_manager.db.close()
 
+    def test_process_link_record(self):
+        self.builder = IndexBuilder(self.mdx_file_path)
+        records = self.builder.query('口内')
+        self.assertEqual(records, [
+            '嘴裡。'
+        ])
+
     @unittest.skip('local test')
     def test_build_large_mdict(self):
         mdx_file_path = f'{temp_dir}/プログレッシブ和英中辞典_v4.mdx'
@@ -75,6 +84,9 @@ class TestIndexBuilder(unittest.TestCase):
         self.assertGreater(len(records), 1)
     
     def tearDown(self):
+        if self.builder:
+            self.builder.index_manager.db.close()
+
         os.remove(self.mdx_file_path)
         if os.path.exists(self.db_file_path):
             os.remove(self.db_file_path)

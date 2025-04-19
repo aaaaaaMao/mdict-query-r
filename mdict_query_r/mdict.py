@@ -164,8 +164,9 @@ class MDX(_MDX):
     def get_data_by_indexes(self, indexes):
         encoding = self.header[b'Encoding'].decode('utf-8')
         data = _get_data_by_indexes(self, indexes)
-        return list(map(lambda x: x.decode(encoding, errors='ignore').strip(u'\x00'),
-                   data))
+        return list(
+            map(lambda x: x.decode(encoding, errors='ignore').strip(u'\x00'), data)
+        )
         
 class MDD(_MDD):
 

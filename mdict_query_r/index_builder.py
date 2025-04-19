@@ -1,4 +1,5 @@
 import os
+import re
 from dataclasses import asdict
 
 from .mdict import MDX, MDD
@@ -20,6 +21,7 @@ class IndexBuilder:
 
         index_exists = os.path.isfile(filepath + '.db')
         self.index_manager = IndexManger(filepath)
+        self.link_pattern = r'^@@@LINK='
 
         if not index_exists:
             self._build()
@@ -55,5 +57,23 @@ class IndexBuilder:
             keywords = [k.lower() for k in keywords]
 
         indexes = self.index_manager.lookup_indexes(keyword, keywords)
-        return self.mdict.get_data_by_indexes(indexes)
+
+        data = self.mdict.get_data_by_indexes(indexes)
+        if self.mdict_type == 'MDD':
+            return data
+        
+        links = []
+        result = []
+        for item in data:
+            if re.match(self.link_pattern, item):
+                links.append(re.sub(self.link_pattern, '', item).strip())
+            else:
+                result.append(item)
+
+        if len(links) == 0:
+            return result
+        
+        link_result = self.query(keywords=links, ignore_case=ignore_case)
+
+        return result + link_result
         
