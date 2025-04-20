@@ -1,6 +1,6 @@
 import unittest
 
-from setup import temp_dir
+from setup import mocks_dir
 from mdict_query_r.lib.writemdict import MDictWriter
 from mdict_query_r.lib.readmdict import MDX, MDD
 
@@ -22,7 +22,7 @@ class TestLib(unittest.TestCase):
             description="This is an example dictionary."
         )
 
-        filepath = f'{temp_dir}/basic.mdx'
+        filepath = f'{mocks_dir}/basic.mdx'
         with open(filepath, 'wb') as f:
             writer.write(f)
 
@@ -49,7 +49,7 @@ class TestLib(unittest.TestCase):
                     b"\0\0\0\0IEND"
                     b"\xae\x42\x60\x82")
         
-        filepath = f'{temp_dir}/basic_mdd.mdd'
+        filepath = f'{mocks_dir}/basic_mdd.mdd'
         with open(filepath, 'wb') as f:
             d_mdd = {"\\red.png": raw_image}
             writer = MDictWriter(d_mdd, "Dictionary with MDD file", "This dictionary tests MDD file handling.", is_mdd=True)
