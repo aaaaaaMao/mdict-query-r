@@ -14,6 +14,57 @@ pip install mdict_query_r
 
 # Usage
 
+## Basic Usage
+
 ```python
-from mdict_query_r.query import Querier
+from mdict_query_r.query import Querier, Dictionary
+
+d = Dictionary('test', 'test.mdx')
+querier = Querier([Dictionary('test', mdx_file_path)])
+records = querier.query('doe')
+
+# records = [
+#     {
+#         'dictionary': 'test',
+#         'record': 'a deer, a female deer.'
+#     }
+# ]
+
+# query multi words
+records = querier.query(keywords=['doe', 'ray'])
+
+# query with case insensitive
+records = querier.query('doe', ignore_case=True)
+```
+
+## Use mdict lib
+
+use [readmdict](https://bitbucket.org/xwang/mdict-analysis/src/master/) to directly read mdx file.
+
+```python
+from mdict_query_r.lib.readmdict import MDX
+
+mdx = MDX('test.mdx')
+```
+
+use [writemdict](https://github.com/zhansliu/writemdict) to directly create mdx file.
+
+```python
+from mdict_query_r.lib.writemdict import MDictWriter
+
+dictionary = {
+    "doe": "a deer, a female deer.",
+    "ray": "a drop of golden sun.",
+    "me": "a name I call myself.",
+    "far": "a long, long way to run."
+}
+
+writer = MDictWriter(
+    dictionary,
+    title="Example Dictionary",
+    description="This is an example dictionary."
+)
+
+with open('test.mdx', 'wb') as f:
+    writer.write(f)
 ```

@@ -5,8 +5,8 @@ from peewee import *
 class Index(Model):
     class Meta:
         table_name = 'mdict_indexes'
-    
-    key_text = TextField(null=False)
+
+    key_text = TextField(null=False, index=True)
     file_pos = IntegerField()
     compressed_size = IntegerField()
     decompressed_size = IntegerField()

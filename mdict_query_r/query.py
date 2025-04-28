@@ -28,12 +28,13 @@ class Querier:
 
     def query(self, keyword='', keywords: list[str]=[], ignore_case=False):
         result = []
-        for _, value in self._builders.items():
-            records = value['builder'].query(keyword, keywords, ignore_case)
+
+        for item in self._builders.values():
+            records = item['builder'].query(keyword, keywords, ignore_case)
             if records:
                 for r in records:
                     result.append({
-                        'dictionary': value['name'],
+                        'dictionary': item['name'],
                         'record': r
                     })
         
