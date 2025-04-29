@@ -9,6 +9,7 @@ import zlib
 from .lib import lzo
 
 from .lib.readmdict import MDX as _MDX, MDD as _MDD, MDict
+from .db_manager import Index
 
 @dataclass
 class MdictIndex:
@@ -128,29 +129,29 @@ def _get_indexes(mdict: MDict):
 
         return result
 
-def _get_data_by_indexes(mdict: MDict, indexes):
+def _get_data_by_indexes(mdict: MDict, indexes: list[Index]):
     with open(mdict._fname, 'rb') as f:
         result = []
         
         for index in indexes:
-            f.seek(index['file_pos'])
-            record_block_compressed = f.read(index['compressed_size'])
+            f.seek(index.file_pos)
+            record_block_compressed = f.read(index.compressed_size)
             record_block_type = record_block_compressed[:4]
-            record_block_type = index['record_block_type']
-            decompressed_size = index['decompressed_size']
+            record_block_type = index.record_block_type
+            decompressed_size = index.decompressed_size
 
             #adler32 = unpack('>I', record_block_compressed[4:8])[0]
             if record_block_type == 0:
                 _record_block = record_block_compressed[8:]
                 # lzo compression
             elif record_block_type == 1:
-                header = b'\xf0' + pack('>I', index['decompressed_size'])
+                header = b'\xf0' + pack('>I', index.decompressed_size)
                 _record_block = lzo.decompress(record_block_compressed[8:], initSize = decompressed_size, blockSize=1308672)
                     # zlib compression
             elif record_block_type == 2:
                 # decompress
                 _record_block = zlib.decompress(record_block_compressed[8:])
-            data = _record_block[index['record_start'] - index['offset']:index['record_end'] - index['offset']]
+            data = _record_block[index.record_start - index.offset:index.record_end - index.offset]
 
             result.append(data)
 
@@ -161,7 +162,7 @@ class MDX(_MDX):
     def get_indexes(self):
         return _get_indexes(self)
         
-    def get_data_by_indexes(self, indexes):
+    def get_data_by_indexes(self, indexes: list[Index]):
         encoding = self.header[b'Encoding'].decode('utf-8')
         data = _get_data_by_indexes(self, indexes)
         return list(
@@ -174,5 +175,5 @@ class MDD(_MDD):
     def get_indexes(self):
         return _get_indexes(self)
     
-    def get_data_by_indexes(self, indexes):
+    def get_data_by_indexes(self, indexes: list[Index]):
         return _get_data_by_indexes(self, indexes)

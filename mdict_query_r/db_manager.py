@@ -64,15 +64,15 @@ class IndexManger():
         with self.db.bind_ctx(self.tables):
             Header.insert_many(items).execute()
 
-    def lookup_indexes(self, keyword='', keywords=[]):
+    def lookup_indexes(self, keyword='', keywords: list[str]=[]) -> list[Index]:
         assert(keyword != "" or len(keywords) != 0)
 
         with self.db.bind_ctx(self.tables):
             if len(keywords) != 0:
                 return Index.select().where(
                     Index.key_text.in_(keywords)
-                ).dicts()
+                )
 
             return Index.select().where(
                 Index.key_text == keyword
-                ).dicts()
+            )

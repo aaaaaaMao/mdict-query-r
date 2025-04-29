@@ -62,7 +62,6 @@ class TestQuery(unittest.TestCase):
                 'record': '<link rel="stylesheet" href="PJE4.css"  type="text/css"/><body><div class="excf"><h3>せいしゅん【青春】</h3><section class="description"><p class="meaning"><i>one\'s</i> youth; youthfulness</p><p class="example"><jpexam>青春の血</jpexam><enexam><i>young</i> blood／the hot blood of <i>youth</i></enexam></p><p class="example"><jpexam>青春の血に燃える</jpexam><enexam>burn with the fire of <i>youth</i></enexam></p><p class="example"><jpexam>彼は青春の情熱を仕事に注いだ</jpexam><enexam>He concentrated on his work with <i>youthful</i> enthusiasm.</enexam></p><p class="subheadword"><em>青春期</em></p><p class="meaning">adolescence</p><p class="subheadword"><em>青春時代</em></p><p class="example"><jpexam>青春時代に</jpexam><enexam>in <i>one\'s</i> youth [young days]</enexam></p></section></div></body>\r\n'
             }
         ])
-
         
 
 if __name__ == '__main__':
