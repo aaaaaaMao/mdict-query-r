@@ -6,6 +6,7 @@ class Index(Model):
     class Meta:
         table_name = 'mdict_indexes'
 
+    id = AutoField()
     key_text = TextField(null=False, index=True)
     file_pos = IntegerField()
     compressed_size = IntegerField()

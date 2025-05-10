@@ -24,11 +24,16 @@ querier = Querier([Dictionary('test', mdx_file_path)])
 records = querier.query('doe')
 
 # records = [
-#     {
-#         'dictionary': 'test',
-#         'record': 'a deer, a female deer.'
-#     }
+#     Record(
+#         dictionary_name='test',
+#         entry=Entry(
+#             id=1,
+#             key_text='doe',
+#             data='a deer, a female deer.'
+#         )
+#     )
 # ]
+
 
 # query multi words
 records = querier.query(keywords=['doe', 'ray'])

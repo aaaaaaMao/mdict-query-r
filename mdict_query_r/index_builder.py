@@ -2,7 +2,7 @@ import os
 import re
 from dataclasses import asdict
 
-from .mdict import MDX, MDD
+from .mdict import MDX, MDD, Entry
 from .db_manager import IndexManger
 
 class IndexBuilder:
@@ -49,7 +49,7 @@ class IndexBuilder:
         self.index_manager.rebuild()
         self._build()
 
-    def query(self, keyword='', keywords: list[str]=[], ignore_case=False):
+    def query(self, keyword='', keywords: list[str]=[], ignore_case=False) -> list[Entry]:
         assert(keyword != "" or len(keywords) != 0)
 
         if ignore_case:
@@ -63,10 +63,10 @@ class IndexBuilder:
             return data
         
         links = []
-        result = []
+        result: list[Entry] = []
         for item in data:
-            if re.match(self.link_pattern, item):
-                links.append(re.sub(self.link_pattern, '', item).strip())
+            if re.match(self.link_pattern, item.data):
+                links.append(re.sub(self.link_pattern, '', item.data).strip())
             else:
                 result.append(item)
 

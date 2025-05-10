@@ -5,6 +5,7 @@ import unittest
 from setup import temp_dir, mocks_dir
 from mocks import create_mdx, create_mdd
 from mdict_query_r.index_builder import IndexBuilder
+from mdict_query_r.mdict import Entry
 
 class TestIndexBuilder(unittest.TestCase):
 
@@ -20,7 +21,7 @@ class TestIndexBuilder(unittest.TestCase):
 
         records = self.builder.query('doe')
         self.assertEqual(records, [
-            'a deer, a female deer.'
+            Entry(id=1, key_text='doe', data='a deer, a female deer.')
         ])
 
         self.assertEqual(self.builder.headers['Title'], 'Example Dictionary')
@@ -41,8 +42,8 @@ class TestIndexBuilder(unittest.TestCase):
 
         records = self.builder.query(keywords=['ray', 'far'])
         self.assertEqual(records, [
-            'a long, long way to run.',
-            'a drop of golden sun.'
+            Entry(id=2, key_text='far', data='a long, long way to run.'),
+            Entry(id=4, key_text='ray', data='a drop of golden sun.'), 
         ])
 
     def test_query_ignore_case(self):
@@ -50,14 +51,14 @@ class TestIndexBuilder(unittest.TestCase):
 
         records = self.builder.query('RAY', ignore_case=True)
         self.assertEqual(records, [
-            'a drop of golden sun.'
+            Entry(id=4, key_text='ray', data='a drop of golden sun.'), 
         ])
 
     def test_process_link_record(self):
         self.builder = IndexBuilder(self.mdx_file_path)
         records = self.builder.query('口内')
         self.assertEqual(records, [
-            '嘴裡。'
+            Entry(id=5, key_text='こうない【口内】', data='嘴裡。'), 
         ])
 
     @unittest.skip('local test')

@@ -2,6 +2,7 @@
 
 from struct import pack, unpack
 from dataclasses import dataclass
+from typing import Any
 
 # zlib compression is used for engine version >=2.0
 import zlib
@@ -28,6 +29,12 @@ class MdictIndex:
     record_start: int
     record_end: int
     offset: int
+
+@dataclass
+class Entry:
+    id: int
+    key_text: str
+    data: Any
 
 def _get_indexes(mdict: MDict):
     check_block = False
@@ -129,9 +136,9 @@ def _get_indexes(mdict: MDict):
 
         return result
 
-def _get_data_by_indexes(mdict: MDict, indexes: list[Index]):
+def _get_data_by_indexes(mdict: MDict, indexes: list[Index], encoding=None):
     with open(mdict._fname, 'rb') as f:
-        result = []
+        result: list[Entry] = []
         
         for index in indexes:
             f.seek(index.file_pos)
@@ -153,7 +160,10 @@ def _get_data_by_indexes(mdict: MDict, indexes: list[Index]):
                 _record_block = zlib.decompress(record_block_compressed[8:])
             data = _record_block[index.record_start - index.offset:index.record_end - index.offset]
 
-            result.append(data)
+            if encoding != None:
+                data = data.decode(encoding, errors='ignore').strip(u'\x00')
+
+            result.append(Entry(id=index.id, key_text=index.key_text, data=data))
 
         return result
 
@@ -164,10 +174,7 @@ class MDX(_MDX):
         
     def get_data_by_indexes(self, indexes: list[Index]):
         encoding = self.header[b'Encoding'].decode('utf-8')
-        data = _get_data_by_indexes(self, indexes)
-        return list(
-            map(lambda x: x.decode(encoding, errors='ignore').strip(u'\x00'), data)
-        )
+        return _get_data_by_indexes(self, indexes, encoding=encoding)
         
 class MDD(_MDD):
 
