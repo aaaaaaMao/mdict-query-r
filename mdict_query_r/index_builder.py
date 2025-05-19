@@ -52,28 +52,38 @@ class IndexBuilder:
     def query(self, keyword='', keywords: list[str]=[], ignore_case=False) -> list[Entry]:
         assert(keyword != "" or len(keywords) != 0)
 
-        if ignore_case:
-            keyword = keyword.lower()
-            keywords = [k.lower() for k in keywords]
+        matched: list[str] = []
 
-        indexes = self.index_manager.lookup_indexes(keyword, keywords)
+        def _query(_keyword='', _keywords: list[str]=[]):
 
-        data = self.mdict.get_data_by_indexes(indexes)
-        if self.mdict_type == 'MDD':
-            return data
+            if ignore_case:
+                _keyword = _keyword.lower()
+                _keywords = [k.lower() for k in _keywords]
+
+            indexes = self.index_manager.lookup_indexes(_keyword, _keywords)
+
+            data = self.mdict.get_data_by_indexes(indexes)
+            if self.mdict_type == 'MDD':
+                return data
+            
+            result: list[Entry] = []
+            links = []
         
-        links = []
-        result: list[Entry] = []
-        for item in data:
-            if re.match(self.link_pattern, item.data):
-                links.append(re.sub(self.link_pattern, '', item.data).strip())
-            else:
-                result.append(item)
+            for item in data:
+                if re.match(self.link_pattern, item.data):
+                    key_text = re.sub(self.link_pattern, '', item.data).strip()
+                    if key_text not in matched:
+                        links.append(key_text)
+                else:
+                    matched.append(item.key_text)
+                    result.append(item)
 
-        if len(links) == 0:
-            return result
+            if len(links) == 0:
+                return result
         
-        link_result = self.query(keywords=links, ignore_case=ignore_case)
+            link_result = _query(_keywords=links)
 
-        return result + link_result
+            return result + link_result
+        
+        return _query(keyword, keywords)
         
